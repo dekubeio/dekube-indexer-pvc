@@ -1,6 +1,6 @@
 """PVC indexer — pre-registers PersistentVolumeClaim and workload PVC references."""
 
-from h2c import ConverterResult, IndexerConverter
+from h2c import ConverterResult, IndexerConverter  # pylint: disable=import-error  # h2c resolves at runtime
 
 _WORKLOAD_KINDS = ("DaemonSet", "Deployment", "Job", "StatefulSet")
 
@@ -14,12 +14,13 @@ def _track_pvc(claim, ctx):
         ctx.config.setdefault("volumes", {})[claim] = {"host_path": claim}
 
 
-class PVCIndexer(IndexerConverter):
+class PVCIndexer(IndexerConverter):  # pylint: disable=too-few-public-methods  # contract: one class, one method
     """Pre-register PVCs in config so volume conversion can resolve host_path on first run."""
     name = "pvc"
     kinds = ["PersistentVolumeClaim"]
 
     def convert(self, _kind, manifests, ctx):
+        """Index PVC manifests and scan workloads for volume claim references."""
         # Register explicit PVC manifests
         for m in manifests:
             claim = m.get("metadata", {}).get("name", "")
