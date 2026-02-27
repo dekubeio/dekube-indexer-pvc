@@ -1,6 +1,6 @@
 """PVC indexer — pre-registers PersistentVolumeClaim and workload PVC references."""
 
-from h2c import ConverterResult, IndexerConverter  # pylint: disable=import-error  # h2c resolves at runtime
+from dekube import ConverterResult, IndexerConverter  # pylint: disable=import-error  # h2c resolves at runtime
 
 _WORKLOAD_KINDS = ("DaemonSet", "Deployment", "Job", "StatefulSet")
 
