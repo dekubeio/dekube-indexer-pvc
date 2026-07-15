@@ -14,16 +14,18 @@ class PVCIndexer(IndexerConverter):  # pylint: disable=too-few-public-methods  #
         """Index PVC manifests and scan workloads for volume claim references."""
         # Register explicit PVC manifests
         for m in manifests:
-            claim = m.get("metadata", {}).get("name", "")
+            claim = (m.get("metadata") or {}).get("name", "")
             self._track_pvc(claim, ctx)
         # Scan workload manifests for volumeClaimTemplates and persistentVolumeClaim refs
         for wl_kind in _WORKLOAD_KINDS:
             for m in ctx.manifests.get(wl_kind, []):
                 spec = m.get("spec") or {}
                 for vct in spec.get("volumeClaimTemplates") or []:
-                    self._track_pvc(vct.get("metadata", {}).get("name", ""), ctx)
+                    self._track_pvc((vct.get("metadata") or {}).get("name", ""), ctx)
                 pod_vols = ((spec.get("template") or {}).get("spec") or {}).get("volumes") or []
                 for v in pod_vols:
+                    if not v:
+                        continue
                     pvc = v.get("persistentVolumeClaim") or {}
                     self._track_pvc(pvc.get("claimName", ""), ctx)
         return ConverterResult()
@@ -34,5 +36,5 @@ class PVCIndexer(IndexerConverter):  # pylint: disable=too-few-public-methods  #
         if not claim:
             return
         ctx.pvc_names.add(claim)
-        if ctx.first_run and claim not in ctx.config.get("volumes", {}):
+        if ctx.first_run and claim not in (ctx.config.get("volumes") or {}):
             ctx.config.setdefault("volumes", {})[claim] = {"host_path": claim}
