@@ -20,8 +20,13 @@ class PVCIndexer(IndexerConverter):  # pylint: disable=too-few-public-methods  #
         for wl_kind in _WORKLOAD_KINDS:
             for m in ctx.manifests.get(wl_kind, []):
                 spec = m.get("spec") or {}
+                wl_name = (m.get("metadata") or {}).get("name", "")
                 for vct in spec.get("volumeClaimTemplates") or []:
-                    self._track_pvc((vct.get("metadata") or {}).get("name", ""), ctx)
+                    if not vct:
+                        continue
+                    vname = (vct.get("metadata") or {}).get("name", "")
+                    # Same naming as the engine: <vct>-<workload> (K8s: <vct>-<sts>-<ordinal>)
+                    self._track_pvc(f"{vname}-{wl_name}" if vname and wl_name else vname, ctx)
                 pod_vols = ((spec.get("template") or {}).get("spec") or {}).get("volumes") or []
                 for v in pod_vols:
                     if not v:
