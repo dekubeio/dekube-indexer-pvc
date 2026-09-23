@@ -10,6 +10,10 @@ PVC indexer for [dekube](https://dekube.io) — pre-registers PersistentVolumeCl
 
 `IndexerConverter` (priority 50)
 
+## Requires
+
+dekube-engine >= v1.6.0 and dekube-provider-simple-workload >= v0.4.0 — VCT PVC naming (`<vct>-<sts>`) needs both.
+
 ## Kinds
 
 - `PersistentVolumeClaim`
