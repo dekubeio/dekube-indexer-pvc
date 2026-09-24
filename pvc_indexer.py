@@ -2,7 +2,8 @@
 
 from dekube import ConverterResult, IndexerConverter  # pylint: disable=import-error  # h2c resolves at runtime
 
-_WORKLOAD_KINDS = ("DaemonSet", "Deployment", "Job", "StatefulSet")
+# Must stay identical to the workload provider's tuple (same name in the distribution)
+_WORKLOAD_KINDS = ("DaemonSet", "Deployment", "Job", "Pod", "StatefulSet")
 
 
 class PVCIndexer(IndexerConverter):  # pylint: disable=too-few-public-methods  # contract: one class, one method
@@ -27,7 +28,9 @@ class PVCIndexer(IndexerConverter):  # pylint: disable=too-few-public-methods  #
                     vname = (vct.get("metadata") or {}).get("name", "")
                     # Same naming as the engine: <vct>-<workload> (K8s: <vct>-<sts>-<ordinal>)
                     self._track_pvc(f"{vname}-{wl_name}" if vname and wl_name else vname, ctx)
-                pod_vols = ((spec.get("template") or {}).get("spec") or {}).get("volumes") or []
+                # A bare Pod carries its volumes directly; workloads carry a pod template
+                pod_spec = spec if wl_kind == "Pod" else ((spec.get("template") or {}).get("spec") or {})
+                pod_vols = pod_spec.get("volumes") or []
                 for v in pod_vols:
                     if not v:
                         continue
